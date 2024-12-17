@@ -1,7 +1,7 @@
 from keras.layers import Input, Conv2D, MaxPooling2D, concatenate, Conv2DTranspose
 from keras.models import Model
 
-inputs = Input((512, 512, 3))
+inputs = Input((1024, 1024, 3))
 
 #Encoder
 c1 = Conv2D(16, (3, 3), activation = 'relu', padding = 'same')(inputs)
