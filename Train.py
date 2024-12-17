@@ -121,11 +121,15 @@ for i in range(1):  # Adjust the range if you want to visualize more images/mask
 
     plt.show()
 
-
+from tensorflow.keras.optimizers.legacy import Adam
 model.compile(optimizer = Adam(learning_rate = 0.001), loss = 'binary_crossentropy', metrics = [Iou, 'accuracy'])
 
 
-
+history = model.fit_generator(train_generator, validation_data = val_generator,
+                              steps_per_epoch = 45,
+                              validation_steps = 5,
+                              epochs = 20,
+                              callbacks = callbacks)
 
 
 
