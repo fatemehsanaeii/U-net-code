@@ -50,3 +50,88 @@ model = Model(inputs= [inputs], outputs= [outputs])
 
 model.summary()
 
+
+from keras import backend as K
+
+def Iou(y_true, y_pred):
+    y_true_f = K.flatten(y_true)
+    y_pred_f = K.flatten(y_pred)
+    intersection = K.sum(y_true_f * y_pred_f)
+    return (intersection + 1.0) / (K.sum(y_true_f) + K.sum(y_pred_f) - intersection + 1.0)
+
+
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import numpy as np
+
+
+seed = 24
+batch_size = 4
+
+img_data_gen_args = dict(rescale = 1/255.)
+
+mask_data_gen_args = dict(rescale = 1/255.)
+
+
+image_data_generator = ImageDataGenerator(**img_data_gen_args)
+mask_data_generator = ImageDataGenerator(**mask_data_gen_args)
+
+image_generator = image_data_generator.flow_from_directory("/content/drive/MyDrive/GIRS Data/Aerial Dataset/train_images",
+                                                           seed = seed,
+                                                           batch_size = batch_size,
+                                                           target_size = (1024, 1024),
+                                                           class_mode = None)
+
+mask_generator = mask_data_generator.flow_from_directory("/content/drive/MyDrive/GIRS Data/Aerial Dataset/train_masks",
+                                                          seed = seed,
+                                                          batch_size = batch_size,
+                                                          target_size = (1024, 1024),
+                                                          color_mode = 'grayscale',
+                                                          class_mode = None)
+
+from matplotlib import pyplot as plt
+import numpy as np
+
+# Get the next batch of images and masks
+x = next(image_generator)
+y = next(mask_generator)
+
+# Debugging step
+print(f"Image batch shape: {x.shape}")
+print(f"Mask batch shape: {y.shape}")
+
+# Ensure both the image and mask batches have the same length
+assert x.shape[0] == y.shape[0], "Mismatch in number of images and masks"
+
+# Visualize the first pair of image and mask
+for i in range(1):  # Adjust the range if you want to visualize more images/masks
+    image = x[i]
+    mask = y[i]
+
+    plt.figure(figsize=(10, 5))
+
+    plt.subplot(1, 2, 1)
+    plt.imshow(image)
+    plt.title("Image")
+    plt.axis('off')
+
+    plt.subplot(1, 2, 2)
+    plt.imshow(mask[:, :, 0], cmap='gray')  # Ensure the mask is displayed correctly in grayscale
+    plt.title("Mask")
+    plt.axis('off')
+
+    plt.show()
+
+
+model.compile(optimizer = Adam(learning_rate = 0.001), loss = 'binary_crossentropy', metrics = [Iou, 'accuracy'])
+
+
+
+
+
+
+
+
+
+
+
+
