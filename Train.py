@@ -131,6 +131,69 @@ history = model.fit_generator(train_generator, validation_data = val_generator,
                               epochs = 20,
                               callbacks = callbacks)
 
+img_data_gen_args = dict(rescale = 1/255.)
+
+mask_data_gen_args = dict(rescale = 1/255.)
+
+image_data_generator = ImageDataGenerator(**img_data_gen_args)
+mask_data_generator = ImageDataGenerator(**mask_data_gen_args)
+
+seed = 24
+batch_size = 4
+
+test_img_generator = image_data_generator.flow_from_directory("/content/drive/MyDrive/WHU Dataset New/test_images/",
+                                                              seed=seed,
+                                                              batch_size=56,
+                                                              target_size=(1024, 1024),
+                                                              class_mode=None) #Default batch size 32, if not specified here
+
+test_mask_generator = mask_data_generator.flow_from_directory("/content/drive/MyDrive/WHU Dataset New/test_masks/",
+                                                              seed=seed,
+                                                              batch_size=56,
+                                                              target_size=(1024, 1024),
+                                                              color_mode = 'grayscale',   #Read masks in grayscale
+                                                              class_mode=None)  #Default batch size 32, if not specified here
+
+test_generator = zip(test_img_generator, test_mask_generator)
+
+evaluation = model.evaluate(test_generator, batch_size=1, steps=56)
+
+from matplotlib import pyplot as plt
+a = test_img_generator.next()
+b = test_mask_generator.next()
+for i in range(0,4):
+    image = a[i]
+    mask = b[i]
+    plt.subplot(1,2,1)
+    plt.imshow(image)
+    plt.subplot(1,2,2)
+    plt.imshow(mask[:,:,0], cmap='gray')
+    plt.show()
+
+
+
+import random
+test_img_number = random.randint(0, a.shape[0]-1)
+test_img = a[test_img_number]
+ground_truth=b[test_img_number]
+test_img_input=np.expand_dims(test_img, 0)
+prediction = (model.predict(test_img_input)[0][:,:,0]>0.5).astype('uint8')
+plt.figure(figsize=(16, 8))
+plt.subplot(231)
+plt.title('Testing Image')
+plt.imshow(test_img)
+plt.subplot(232)
+plt.title('Testing Label')
+plt.imshow(ground_truth[:,:,0], cmap='gray')
+plt.subplot(233)
+plt.title('Prediction on test image')
+plt.imshow(prediction, cmap='gray')
+
+plt.show()
+
+
+
+
 
 
 
